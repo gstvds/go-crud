@@ -2,8 +2,8 @@ package database
 
 import (
 	"fmt"
-	"go-crud/src/infra/repositories/models"
-	"go-crud/src/utils"
+	"go-crud/src/domain/entities"
+	"go-crud/src/shared"
 	"log"
 	"time"
 
@@ -15,11 +15,12 @@ var DB *gorm.DB
 
 // SetupDatabase prepare the database connection
 func SetupDatabase() {
-	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
-		utils.DATABASE.Host,
-		utils.DATABASE.User,
-		utils.DATABASE.Password,
-		utils.DATABASE.Name,
+	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
+		shared.DATABASE.Host,
+		shared.DATABASE.Port,
+		shared.DATABASE.User,
+		shared.DATABASE.Password,
+		shared.DATABASE.Name,
 	)
 
 	db, err := gorm.Open(postgres.New(postgres.Config{
@@ -39,7 +40,7 @@ func SetupDatabase() {
 	dbConfig.SetMaxIdleConns(50)
 	dbConfig.SetConnMaxLifetime(5 * time.Minute)
 
-	if err = db.AutoMigrate(&models.User{}); err != nil {
+	if err = db.AutoMigrate(&entities.User{}); err != nil {
 		log.Fatal(err)
 	}
 

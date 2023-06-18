@@ -1,23 +1,23 @@
-package services
+package usecases
 
 import (
 	"errors"
 	"fmt"
-	"go-crud/src/infra/repositories/models"
-	userrepository "go-crud/src/infra/repositories/user_repository"
-	"go-crud/src/providers/database"
+	"go-crud/src/domain/entities"
+	"go-crud/src/external/providers/database"
+	userrepository "go-crud/src/external/repositories/user_repository"
 
 	"gorm.io/gorm"
 )
 
-// DeleteUserService deletes a user by its email
-func DeleteUserService(user *models.User) error {
+// DeleteUserUseCase deletes a user by its email
+func DeleteUserUseCase(user *entities.User) error {
 	db := database.Get()
 	userRepository := userrepository.New(db)
 
 	existingUser := user
 
-	if err := userRepository.Read(existingUser); err != nil {
+	if err := userRepository.GetById(existingUser); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			fmt.Println("User not found")
 			return err

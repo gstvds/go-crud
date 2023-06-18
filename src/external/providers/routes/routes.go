@@ -20,17 +20,17 @@ var routes = []Route{
 		Function: usercontroller.Create,
 	},
 	{
-		URI:      "/user/{email}",
+		URI:      "/user/{id}",
 		Method:   http.MethodGet,
 		Function: usercontroller.Get,
 	},
 	{
-		URI:      "/user/{email}",
+		URI:      "/user/{id}",
 		Method:   http.MethodPut,
 		Function: usercontroller.Update,
 	},
 	{
-		URI:      "/user/{email}",
+		URI:      "/user/{id}",
 		Method:   http.MethodDelete,
 		Function: usercontroller.Delete,
 	},

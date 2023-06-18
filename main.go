@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"go-crud/src/infra/http/routes"
-	"go-crud/src/providers/database"
-	"go-crud/src/utils"
+	"go-crud/src/external/providers/database"
+	"go-crud/src/external/providers/routes"
+	"go-crud/src/shared"
 	"log"
 	"net/http"
 	"os"
@@ -23,7 +23,7 @@ func configureRouter() {
 }
 
 func main() {
-	utils.LoadEnv()
+	shared.LoadEnv()
 	database.SetupDatabase()
 
 	configureRouter()

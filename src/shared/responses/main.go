@@ -2,7 +2,7 @@ package responses
 
 import (
 	"encoding/json"
-	"go-crud/src/utils"
+	"go-crud/src/shared"
 	"log"
 	"net/http"
 )
@@ -20,7 +20,7 @@ func JSON(response http.ResponseWriter, statusCode int, data interface{}) {
 }
 
 // Error returns a JSON formatted error to the client.
-func Error(response http.ResponseWriter, statusCode int, serverError utils.ServerError) {
+func Error(response http.ResponseWriter, statusCode int, serverError shared.ServerError) {
 	JSON(response, statusCode, struct {
 		Message string `json:"message"`
 		Code    string `json:"code"`

@@ -3,13 +3,15 @@ package usercontroller
 import (
 	"encoding/json"
 	"errors"
-	"go-crud/src/infra/repositories/models"
-	"go-crud/src/services"
-	"go-crud/src/utils"
-	"go-crud/src/utils/responses"
+	"go-crud/src/domain/entities"
+	"go-crud/src/shared"
+	"go-crud/src/shared/responses"
+	"go-crud/src/usecases"
 	"io"
+	"log"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -17,7 +19,7 @@ import (
 func Create(response http.ResponseWriter, request *http.Request) {
 	body, err := io.ReadAll(request.Body)
 	if err != nil {
-		responses.Error(response, http.StatusInternalServerError, utils.Error(
+		responses.Error(response, http.StatusInternalServerError, shared.Error(
 			"Something went wrong while reading the body",
 			"something_went_wrong",
 			err,
@@ -25,9 +27,9 @@ func Create(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var data models.User
+	var data entities.User
 	if err = json.Unmarshal(body, &data); err != nil {
-		responses.Error(response, http.StatusInternalServerError, utils.Error(
+		responses.Error(response, http.StatusInternalServerError, shared.Error(
 			"Invalid request body",
 			"invalid_request_body",
 			err,
@@ -35,12 +37,21 @@ func Create(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if err = services.CreateUserService(&data); err != nil {
-		responses.Error(response, http.StatusInternalServerError, utils.Error(
-			"Failed to create a user",
-			"creation_failed",
-			err,
-		))
+	if err = usecases.CreateUserUseCase(&data); err != nil {
+		if err.Error() == "user already exists" {
+			responses.Error(response, http.StatusInternalServerError, shared.Error(
+				"User already exists",
+				"user_already_exits",
+				err,
+			))
+		} else {
+			responses.Error(response, http.StatusInternalServerError, shared.Error(
+				"Failed to create a user",
+				"creation_failed",
+				err,
+			))
+		}
+
 		return
 	}
 
@@ -50,20 +61,20 @@ func Create(response http.ResponseWriter, request *http.Request) {
 // Update an existing User
 func Update(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	email := vars["email"]
+	userId := vars["id"]
 
-	if email == "" {
-		responses.Error(response, http.StatusBadRequest, utils.Error(
-			"Invalid user email",
-			"invalid_user_email",
-			errors.New("missing_user_email"),
+	if userId == "" {
+		responses.Error(response, http.StatusBadRequest, shared.Error(
+			"Invalid user id",
+			"invalid_user_id",
+			errors.New("missing_user_id"),
 		))
 		return
 	}
 
 	body, err := io.ReadAll(request.Body)
 	if err != nil {
-		responses.Error(response, http.StatusInternalServerError, utils.Error(
+		responses.Error(response, http.StatusInternalServerError, shared.Error(
 			"Something went wrong while reading the body",
 			"something_went_wrong",
 			err,
@@ -71,20 +82,29 @@ func Update(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var data models.User
+	var data entities.User
 	if err = json.Unmarshal(body, &data); err != nil {
-		responses.Error(response, http.StatusInternalServerError, utils.Error(
+		responses.Error(response, http.StatusInternalServerError, shared.Error(
 			"Invalid request body",
 			"invalid_request_body",
 			err,
 		))
 		return
 	}
+	log.Println(data)
+	data.Id, err = uuid.Parse(userId)
+	log.Println(data)
 
-	data.Email = email
+	if err != nil {
+		responses.Error(response, http.StatusBadRequest, shared.Error(
+			"Something went wrong. Try again",
+			"something_went_wrong",
+			err,
+		))
+	}
 
-	if err := services.UpsertUserService(&data); err != nil {
-		responses.Error(response, http.StatusInternalServerError, utils.Error(
+	if err := usecases.UpsertUserUseCase(&data); err != nil {
+		responses.Error(response, http.StatusInternalServerError, shared.Error(
 			"Failed to upser user",
 			"upsert_failed",
 			err,
@@ -98,21 +118,32 @@ func Update(response http.ResponseWriter, request *http.Request) {
 // Get an User by its ID
 func Get(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	email := vars["email"]
-	if email == "" {
-		responses.Error(response, http.StatusBadRequest, utils.Error(
-			"Missing user email",
-			"missing_user_email",
-			errors.New("missing_user_email"),
+	userId := vars["id"]
+	if userId == "" {
+		responses.Error(response, http.StatusBadRequest, shared.Error(
+			"Missing user id",
+			"missing_user_id",
+			errors.New("missing_user_id"),
 		))
 		return
 	}
 
-	var data models.User
-	data.Email = email
+	var user = entities.User{}
+	convertedUserId, err := uuid.Parse(userId)
 
-	if err := services.GetUserService(&data); err != nil {
-		responses.Error(response, http.StatusNotFound, utils.Error(
+	if err != nil {
+		responses.Error(response, http.StatusBadRequest, shared.Error(
+			"Something went wrong. Try again",
+			"something_went_wrong",
+			err,
+		))
+	}
+
+	user.Id = convertedUserId
+	err = usecases.GetUserUseCase(&user)
+
+	if err != nil {
+		responses.Error(response, http.StatusNotFound, shared.Error(
 			"Unable to find user. Try again or check if the user exists",
 			"unable_to_find_user",
 			err,
@@ -120,27 +151,37 @@ func Get(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	responses.JSON(response, http.StatusOK, data)
+	responses.JSON(response, http.StatusOK, user)
 }
 
 // Delete an User by its ID
 func Delete(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
-	email := vars["email"]
-	if email == "" {
-		responses.Error(response, http.StatusBadRequest, utils.Error(
-			"Invalid user email",
-			"invalid_user_email",
-			errors.New("missing_user_email"),
+	userId := vars["id"]
+	if userId == "" {
+		responses.Error(response, http.StatusBadRequest, shared.Error(
+			"Invalid user id",
+			"invalid_user_id",
+			errors.New("missing_user_id"),
 		))
 		return
 	}
 
-	var data models.User
-	data.Email = email
+	var data entities.User
+	userUuid, err := uuid.Parse(userId)
 
-	if err := services.DeleteUserService(&data); err != nil {
-		responses.Error(response, http.StatusInternalServerError, utils.Error(
+	if err != nil {
+		responses.Error(response, http.StatusBadRequest, shared.Error(
+			"Something went wrong. Try again",
+			"something_went_wrong",
+			err,
+		))
+	}
+
+	data.Id = userUuid
+
+	if err := usecases.DeleteUserUseCase(&data); err != nil {
+		responses.Error(response, http.StatusInternalServerError, shared.Error(
 			"Error while deleting user",
 			"deletion_failed",
 			err,

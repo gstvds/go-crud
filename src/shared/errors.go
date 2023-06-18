@@ -1,4 +1,4 @@
-package utils
+package shared
 
 type ServerError struct {
 	Message string `json:"message"`

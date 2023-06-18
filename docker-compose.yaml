@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  pg:
+    image: postgres:15.0
+    hostname: pg
+    container_name: pg
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: postgres
