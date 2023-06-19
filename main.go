@@ -6,20 +6,20 @@ import (
 	"go-crud/src/external/providers/routes"
 	"go-crud/src/shared"
 	"log"
-	"net/http"
 	"os"
 )
 
 // configureRouter configures server port and starts the server
 func configureRouter() {
-	serverRouter := routes.Generate()
+	app := routes.NewRouter()
+
 	PORT := os.Getenv("PORT")
 	if PORT == "" {
 		PORT = "3333"
 	}
 
 	log.Printf("Server started on PORT: %s", PORT)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%s", PORT), serverRouter))
+	log.Fatal(app.Listen(fmt.Sprintf(":%s", PORT)))
 }
 
 func main() {

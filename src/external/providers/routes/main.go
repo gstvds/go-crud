@@ -1,8 +1,8 @@
 package routes
 
-import "github.com/gorilla/mux"
+import "github.com/gofiber/fiber/v2"
 
-func Generate() *mux.Router {
-	muxRouter := mux.NewRouter()
-	return Configure(muxRouter)
+func NewRouter() *fiber.App {
+	app := New()
+	return Configure(app)
 }

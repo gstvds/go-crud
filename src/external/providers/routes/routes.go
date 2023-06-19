@@ -4,13 +4,13 @@ import (
 	usercontroller "go-crud/src/controllers/user_controller"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gofiber/fiber/v2"
 )
 
 type Route struct {
 	URI      string
 	Method   string
-	Function func(http.ResponseWriter, *http.Request)
+	Function func(*fiber.Ctx) error
 }
 
 var routes = []Route{
@@ -20,26 +20,26 @@ var routes = []Route{
 		Function: usercontroller.Create,
 	},
 	{
-		URI:      "/user/{id}",
+		URI:      "/user/:id",
 		Method:   http.MethodGet,
 		Function: usercontroller.Get,
 	},
 	{
-		URI:      "/user/{id}",
+		URI:      "/user/:id",
 		Method:   http.MethodPut,
 		Function: usercontroller.Update,
 	},
 	{
-		URI:      "/user/{id}",
+		URI:      "/user/:id",
 		Method:   http.MethodDelete,
 		Function: usercontroller.Delete,
 	},
 }
 
-func Configure(router *mux.Router) *mux.Router {
+func Configure(app *fiber.App) *fiber.App {
 	for _, route := range routes {
-		router.HandleFunc(route.URI, route.Function).Methods(route.Method)
+		app.Add(route.Method, route.URI, route.Function)
 	}
 
-	return router
+	return app
 }
