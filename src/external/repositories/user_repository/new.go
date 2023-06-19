@@ -1,14 +1,14 @@
 package userrepository
 
 import (
-	"gorm.io/gorm"
+	"go-crud/prisma/db"
 )
 
 type repository struct {
-	db *gorm.DB
+	db *db.PrismaClient
 }
 
 // New repository instance
-func New(db *gorm.DB) *repository {
+func New(db *db.PrismaClient) *repository {
 	return &repository{db}
 }
