@@ -3,6 +3,7 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
+	"go-crud/src/external/providers"
 	"go-crud/src/external/providers/database"
 	"go-crud/src/external/repositories"
 	"go-crud/src/shared"
@@ -25,7 +26,8 @@ func (UserController) Create(fiberContext *fiber.Ctx) error {
 	body := fiberContext.Body()
 	db := database.Get()
 	userRepository := repositories.NewPrismaUserRepository(db)
-	createUserUseCase := usecases.NewCreateUserUseCase(userRepository)
+	messagingProvider := providers.NewKafkaMessagingProvider()
+	createUserUseCase := usecases.NewCreateUserUseCase(userRepository, messagingProvider)
 
 	data := usecases.CreateUserInputDTO{}
 	if err := json.Unmarshal(body, &data); err != nil {

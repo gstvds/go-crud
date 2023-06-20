@@ -2,6 +2,7 @@ package usecases
 
 import (
 	"context"
+	"go-crud/src/domain"
 	"go-crud/src/domain/entities"
 	"log"
 	"time"
@@ -23,12 +24,13 @@ type CreateUserOutputDTO struct {
 }
 
 type CreateUserUseCase struct {
-	UserRepository entities.UserRepository
+	UserRepository    entities.UserRepository
+	MessagingProvider domain.MessagingProvider
 }
 
 // NewCreateUserUseCase return a new instance of a CreateUserUseCase
-func NewCreateUserUseCase(userRepository entities.UserRepository) *CreateUserUseCase {
-	return &CreateUserUseCase{UserRepository: userRepository}
+func NewCreateUserUseCase(userRepository entities.UserRepository, messagingProvider domain.MessagingProvider) *CreateUserUseCase {
+	return &CreateUserUseCase{UserRepository: userRepository, MessagingProvider: messagingProvider}
 }
 
 // Exec the CreateUserUseCase to create a new User (or return the existing one)
@@ -44,14 +46,17 @@ func (useCase CreateUserUseCase) Exec(input CreateUserInputDTO) (*CreateUserOutp
 			return nil, err
 		}
 
-		return &CreateUserOutputDTO{
+		createdUserResponse := &CreateUserOutputDTO{
 			Id:        createdUser.Id,
 			Email:     createdUser.Email,
 			Name:      createdUser.Name,
 			BirthDate: createdUser.BirthDate,
 			CreatedAt: createdUser.CreatedAt,
 			UpdatedAt: createdUser.UpdatedAt,
-		}, nil
+		}
+		useCase.MessagingProvider.Send("user.created", createdUserResponse.Id, 1.0, createdUserResponse)
+
+		return createdUserResponse, nil
 	}
 
 	return &CreateUserOutputDTO{

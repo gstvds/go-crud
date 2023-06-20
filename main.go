@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go-crud/src/controllers"
 	"go-crud/src/external/providers/database"
 	"go-crud/src/external/providers/routes"
 	"go-crud/src/shared"
@@ -19,12 +20,18 @@ func configureRouter() {
 	}
 
 	log.Printf("Server started on PORT: %s", PORT)
-	log.Fatal(app.Listen(fmt.Sprintf(":%s", PORT)))
+	app.Listen(fmt.Sprintf(":%s", PORT))
+}
+
+func configureKafka() {
+	kafkaController := controllers.NewKafkaController()
+	kafkaController.Consume()
 }
 
 func main() {
 	shared.LoadEnv()
 	database.SetupDatabase()
 
+	go configureKafka()
 	configureRouter()
 }
