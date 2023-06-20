@@ -2,41 +2,70 @@ package usecases
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"go-crud/src/domain/entities"
-	"go-crud/src/external/providers/database"
-	"go-crud/src/external/repositories"
-
-	"gorm.io/gorm"
+	"time"
 )
 
+type UpsertUserInputDTO struct {
+	Id        string `json:"id"`
+	Email     string `json:"email"`
+	Name      string `json:"name"`
+	BirthDate string `json:"birth_date"`
+}
+
+type UpsertUserOutputDTO struct {
+	Id        string    `json:"id"`
+	Email     string    `json:"email"`
+	Name      string    `json:"name"`
+	BirthDate string    `json:"birth_date"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type UpsertUserUseCase struct {
+	UserRepository entities.UserRepository
+}
+
+func NewUpsertUserUseCase(userRepository entities.UserRepository) *UpsertUserUseCase {
+	return &UpsertUserUseCase{UserRepository: userRepository}
+}
+
 // UpsertUserUseCase updates a user (or creates if doesn't exists)
-func UpsertUserUseCase(user *entities.User) error {
-	db := database.Get()
-	userRepository := repositories.NewPrismaUserRepository(db)
+func (upsertUserUseCase UpsertUserUseCase) Exec(input UpsertUserInputDTO) (*UpsertUserOutputDTO, error) {
+	user := entities.NewUser(input.Email, input.Name, input.BirthDate)
+	user.Id = input.Id
 	ctx := context.Background()
 
-	existingUser := *user
-
-	if _, err := userRepository.GetById(&existingUser, ctx); err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// If doesn't exist, create a new user
-			if _, err = userRepository.Create(user, ctx); err != nil {
-				return err
-			}
-
+	foundUser, _ := upsertUserUseCase.UserRepository.GetById(user.Id, ctx)
+	if foundUser == nil {
+		// If doesn't exist, create a new user
+		if createdUser, err := upsertUserUseCase.UserRepository.Create(user, ctx); err != nil {
+			return nil, err
+		} else {
 			fmt.Println("User created successfully")
-			return nil
+			return &UpsertUserOutputDTO{
+				Id:        createdUser.Id,
+				Name:      createdUser.Name,
+				Email:     createdUser.Email,
+				BirthDate: createdUser.BirthDate,
+				CreatedAt: createdUser.CreatedAt,
+				UpdatedAt: createdUser.UpdatedAt,
+			}, nil
 		}
-		return err
+	} else {
+		if updatedUser, err := upsertUserUseCase.UserRepository.Update(user, ctx); err != nil {
+			return nil, err
+		} else {
+			fmt.Println("User updated successfully")
+			return &UpsertUserOutputDTO{
+				Id:        updatedUser.Id,
+				Name:      updatedUser.Name,
+				Email:     updatedUser.Email,
+				BirthDate: updatedUser.BirthDate,
+				CreatedAt: updatedUser.CreatedAt,
+				UpdatedAt: updatedUser.UpdatedAt,
+			}, nil
+		}
 	}
-
-	if _, err := userRepository.Update(user, ctx); err != nil {
-		return err
-	}
-
-	fmt.Println("User updated successfully")
-
-	return nil
 }

@@ -2,31 +2,35 @@ package usecases
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"go-crud/src/domain/entities"
-	"go-crud/src/external/providers/database"
-	"go-crud/src/external/repositories"
-
-	"gorm.io/gorm"
 )
 
-// DeleteUserUseCase deletes a user by its email
-func DeleteUserUseCase(user *entities.User) error {
-	db := database.Get()
-	userRepository := repositories.NewPrismaUserRepository(db)
+type DeleteUserInputDTO struct {
+	UserId string `json:"user_id"`
+}
+
+type DeleteUserUseCase struct {
+	UserRepository entities.UserRepository
+}
+
+func NewDeleteUserUseCase(userRepository entities.UserRepository) *DeleteUserUseCase {
+	return &DeleteUserUseCase{UserRepository: userRepository}
+}
+
+// Exec the DeleteUserUseCase to delete a user by its email
+func (deleteUserUseCase DeleteUserUseCase) Exec(input DeleteUserInputDTO) error {
+	userId := input.UserId
 	ctx := context.Background()
 
-	existingUser := user
-
-	if _, err := userRepository.GetById(existingUser, ctx); err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+	if _, err := deleteUserUseCase.UserRepository.GetById(userId, ctx); err != nil {
+		if err.Error() == "ErrNotFound" {
 			fmt.Println("User not found")
 			return err
 		}
 	}
 
-	if err := userRepository.Delete(user.Id, ctx); err != nil {
+	if err := deleteUserUseCase.UserRepository.Delete(userId, ctx); err != nil {
 		return err
 	}
 

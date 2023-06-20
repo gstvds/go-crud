@@ -3,13 +3,11 @@ package controllers
 import (
 	"encoding/json"
 	"errors"
-	"go-crud/src/domain/entities"
 	"go-crud/src/external/providers/database"
 	"go-crud/src/external/repositories"
 	"go-crud/src/shared"
 	"go-crud/src/shared/responses"
 	"go-crud/src/usecases"
-	"log"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
@@ -63,6 +61,10 @@ func (UserController) Create(fiberContext *fiber.Ctx) error {
 
 // Update an existing User
 func (UserController) Update(fiberContext *fiber.Ctx) error {
+	db := database.Get()
+	userRepository := repositories.NewPrismaUserRepository(db)
+	upsertUserUseCase := usecases.NewUpsertUserUseCase(userRepository)
+
 	userId := fiberContext.Params("id")
 
 	if userId == "" {
@@ -76,7 +78,9 @@ func (UserController) Update(fiberContext *fiber.Ctx) error {
 
 	body := fiberContext.Body()
 
-	var data entities.User
+	data := usecases.UpsertUserInputDTO{
+		Id: userId,
+	}
 	if err := json.Unmarshal(body, &data); err != nil {
 		responses.Error(fiberContext, http.StatusInternalServerError, shared.Error(
 			"Invalid request body",
@@ -86,33 +90,27 @@ func (UserController) Update(fiberContext *fiber.Ctx) error {
 		return nil
 	}
 
-	var err error
-	log.Println(data)
-
-	if err != nil {
-		responses.Error(fiberContext, http.StatusBadRequest, shared.Error(
-			"Something went wrong. Try again",
-			"something_went_wrong",
-			err,
-		))
-	}
-
-	if err := usecases.UpsertUserUseCase(&data); err != nil {
+	if updatedUser, err := upsertUserUseCase.Exec(data); err != nil {
 		responses.Error(fiberContext, http.StatusInternalServerError, shared.Error(
 			"Failed to upser user",
 			"upsert_failed",
 			err,
 		))
 		return nil
+	} else {
+		responses.JSON(fiberContext, http.StatusOK, updatedUser)
+		return nil
 	}
-
-	responses.JSON(fiberContext, http.StatusOK, data)
-	return nil
 }
 
 // Get an User by its ID
 func (UserController) Get(fiberContext *fiber.Ctx) error {
+	db := database.Get()
+	userRepository := repositories.NewPrismaUserRepository(db)
+	getUserUseCase := usecases.NewGetUserUseCase(userRepository)
+
 	userId := fiberContext.Params("id")
+
 	if userId == "" {
 		responses.Error(fiberContext, http.StatusBadRequest, shared.Error(
 			"Missing user id",
@@ -122,26 +120,29 @@ func (UserController) Get(fiberContext *fiber.Ctx) error {
 		return nil
 	}
 
-	var user = entities.User{}
-	user.Id = userId
+	user := usecases.GetUserInputDTO{
+		UserId: userId,
+	}
 
-	err := usecases.GetUserUseCase(&user)
-
-	if err != nil {
+	if foundUser, err := getUserUseCase.Exec(user); err != nil {
 		responses.Error(fiberContext, http.StatusNotFound, shared.Error(
 			"Unable to find user. Try again or check if the user exists",
 			"unable_to_find_user",
 			err,
 		))
 		return nil
+	} else {
+		responses.JSON(fiberContext, http.StatusOK, foundUser)
+		return nil
 	}
-
-	responses.JSON(fiberContext, http.StatusOK, user)
-	return nil
 }
 
 // Delete an User by its ID
 func (UserController) Delete(fiberContext *fiber.Ctx) error {
+	db := database.Get()
+	userRepository := repositories.NewPrismaUserRepository(db)
+	deleteUserUseCase := usecases.NewDeleteUserUseCase(userRepository)
+
 	userId := fiberContext.Params("id")
 	if userId == "" {
 		responses.Error(fiberContext, http.StatusBadRequest, shared.Error(
@@ -152,18 +153,19 @@ func (UserController) Delete(fiberContext *fiber.Ctx) error {
 		return nil
 	}
 
-	var data entities.User
-	data.Id = userId
+	data := usecases.DeleteUserInputDTO{
+		UserId: userId,
+	}
 
-	if err := usecases.DeleteUserUseCase(&data); err != nil {
+	if err := deleteUserUseCase.Exec(data); err != nil {
 		responses.Error(fiberContext, http.StatusInternalServerError, shared.Error(
 			"Error while deleting user",
 			"deletion_failed",
 			err,
 		))
 		return nil
+	} else {
+		responses.JSON(fiberContext, http.StatusNoContent, nil)
+		return nil
 	}
-
-	responses.JSON(fiberContext, http.StatusOK, nil)
-	return nil
 }

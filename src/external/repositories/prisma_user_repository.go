@@ -36,8 +36,8 @@ func (repository PrismaUserRepository) Delete(userId string, ctx context.Context
 	return err
 }
 
-func (repository PrismaUserRepository) GetByEmail(user *entities.User, ctx context.Context) (*entities.User, error) {
-	if foundUser, err := repository.db.User.FindFirst(db.User.Email.Equals(user.Email)).Exec(ctx); err != nil {
+func (repository PrismaUserRepository) GetByEmail(email string, ctx context.Context) (*entities.User, error) {
+	if foundUser, err := repository.db.User.FindFirst(db.User.Email.Equals(email)).Exec(ctx); err != nil {
 		return nil, err
 	} else {
 		userRepositoryMapper := mappers.NewUserRepositoryMapper()
@@ -45,8 +45,8 @@ func (repository PrismaUserRepository) GetByEmail(user *entities.User, ctx conte
 	}
 }
 
-func (repository PrismaUserRepository) GetById(user *entities.User, ctx context.Context) (*entities.User, error) {
-	if user, err := repository.db.User.FindUnique(db.User.ID.Equals(user.Id)).Exec(ctx); err != nil {
+func (repository PrismaUserRepository) GetById(userId string, ctx context.Context) (*entities.User, error) {
+	if user, err := repository.db.User.FindUnique(db.User.ID.Equals(userId)).Exec(ctx); err != nil {
 		return nil, err
 	} else {
 		userRepositoryMapper := mappers.NewUserRepositoryMapper()

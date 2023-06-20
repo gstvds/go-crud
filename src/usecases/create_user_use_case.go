@@ -36,7 +36,7 @@ func (useCase CreateUserUseCase) Exec(input CreateUserInputDTO) (*CreateUserOutp
 	user := entities.NewUser(input.Email, input.Name, input.BirthDate)
 	ctx := context.Background()
 
-	foundUser, _ := useCase.UserRepository.GetByEmail(user, ctx)
+	foundUser, _ := useCase.UserRepository.GetByEmail(user.Email, ctx)
 	if foundUser == nil {
 		log.Println("User not found. Creating one...")
 		createdUser, err := useCase.UserRepository.Create(user, ctx)
