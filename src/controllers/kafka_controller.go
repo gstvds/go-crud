@@ -23,7 +23,7 @@ func (KafkaController) Consume() {
 	messagingProvider := providers.NewKafkaMessagingProvider()
 
 	messageChannel := make(chan *kafka.Message)
-	messagingProvider.NewConsumer(topics, messageChannel)
+	go messagingProvider.Consume(topics, messageChannel)
 
 	for msg := range messageChannel {
 		message := domain.Message{}

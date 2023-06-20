@@ -14,35 +14,43 @@ var name = "user-management"
 type KafkaMessagingProvider struct{}
 
 func NewKafkaMessagingProvider() *KafkaMessagingProvider {
+	newProducer()
 	return &KafkaMessagingProvider{}
 }
 
-func (KafkaMessagingProvider) NewProducer() {
-	var protocol string = "plaintext"
+func newProducer() {
 	kafkaProtocol := os.Getenv("KAFKA_PROTOCOL")
 	kafkaUsername := os.Getenv("KAFKA_USERNAME")
 	kafkaPassword := os.Getenv("KAFKA_PASSWORD")
+	bootstrapServers := os.Getenv("KAFKA_BOOTSTRAP_SERVERS")
+
+	var err error
+	var kafkaProducer *kafka.Producer
 
 	if kafkaProtocol == "SASL_SSL" {
-		protocol = "sasl_ssl"
+		kafkaProducer, err = kafka.NewProducer(&kafka.ConfigMap{
+			"client.id":         name,
+			"security.protocol": "sasl",
+			"sasl.username":     kafkaUsername,
+			"sasl.password":     kafkaPassword,
+			"sasl.mechanisms":   "plain",
+			"bootstrap.servers": bootstrapServers,
+		})
+	} else {
+		kafkaProducer, err = kafka.NewProducer(&kafka.ConfigMap{
+			"client.id":         name,
+			"bootstrap.servers": bootstrapServers,
+		})
 	}
-
-	newProducer, err := kafka.NewProducer(&kafka.ConfigMap{
-		"client.id":         name,
-		"security.protocol": protocol,
-		"sasl.username":     kafkaUsername,
-		"sasl.password":     kafkaPassword,
-		"sasl.mechanisms":   "plain",
-	})
 
 	if err != nil {
 		panic(err)
 	}
 
-	producer = newProducer
+	producer = kafkaProducer
 }
 
-func (KafkaMessagingProvider) NewConsumer(topics []string, channel chan *kafka.Message) {
+func (KafkaMessagingProvider) Consume(topics []string, channel chan *kafka.Message) {
 	bootstrapServers := os.Getenv("KAFKA_BOOTSTRAP_SERVERS")
 
 	kafkaConsumer, err := kafka.NewConsumer(&kafka.ConfigMap{
@@ -73,12 +81,10 @@ func (messagingProvider KafkaMessagingProvider) Send(topic string, key string, v
 	byteMessage, err := json.Marshal(_message)
 
 	if err == nil {
-
 		producer.Produce(&kafka.Message{
 			TopicPartition: kafka.TopicPartition{Topic: &name, Partition: kafka.PartitionAny},
 			Key:            []byte(key),
 			Value:          byteMessage,
 		}, nil)
 	}
-
 }

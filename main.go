@@ -20,7 +20,7 @@ func configureRouter() {
 	}
 
 	log.Printf("Server started on PORT: %s", PORT)
-	app.Listen(fmt.Sprintf(":%s", PORT))
+	go app.Listen(fmt.Sprintf(":%s", PORT))
 }
 
 func configureKafka() {
@@ -32,6 +32,6 @@ func main() {
 	shared.LoadEnv()
 	database.SetupDatabase()
 
-	go configureKafka()
 	configureRouter()
+	configureKafka()
 }
