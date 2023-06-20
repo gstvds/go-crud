@@ -5,16 +5,15 @@ import (
 	"go-crud/src/controllers"
 	"go-crud/src/external/providers/database"
 	"go-crud/src/external/providers/routes"
-	"go-crud/src/shared"
+	"go-crud/src/shared/config"
 	"log"
-	"os"
 )
 
 // configureRouter configures server port and starts the server
 func configureRouter() {
 	app := routes.NewRouter()
 
-	PORT := os.Getenv("PORT")
+	PORT := config.ENVRIONMENT_VARIABLES.PORT
 	if PORT == "" {
 		PORT = "3333"
 	}
@@ -29,7 +28,7 @@ func configureKafka() {
 }
 
 func main() {
-	shared.LoadEnv()
+	config.LoadEnv()
 	database.SetupDatabase()
 
 	configureRouter()

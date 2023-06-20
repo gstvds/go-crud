@@ -3,7 +3,7 @@ package providers
 import (
 	"encoding/json"
 	"go-crud/src/domain"
-	"os"
+	"go-crud/src/shared/config"
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 )
@@ -19,27 +19,23 @@ func NewKafkaMessagingProvider() *KafkaMessagingProvider {
 }
 
 func newProducer() {
-	kafkaProtocol := os.Getenv("KAFKA_PROTOCOL")
-	kafkaUsername := os.Getenv("KAFKA_USERNAME")
-	kafkaPassword := os.Getenv("KAFKA_PASSWORD")
-	bootstrapServers := os.Getenv("KAFKA_BOOTSTRAP_SERVERS")
 
 	var err error
 	var kafkaProducer *kafka.Producer
 
-	if kafkaProtocol == "SASL_SSL" {
+	if config.ENVRIONMENT_VARIABLES.KAFKA_PROTOCOL == "SASL_SSL" {
 		kafkaProducer, err = kafka.NewProducer(&kafka.ConfigMap{
 			"client.id":         name,
 			"security.protocol": "sasl",
-			"sasl.username":     kafkaUsername,
-			"sasl.password":     kafkaPassword,
+			"sasl.username":     config.ENVRIONMENT_VARIABLES.KAFKA_USERNAME,
+			"sasl.password":     config.ENVRIONMENT_VARIABLES.KAFKA_PASSWORD,
 			"sasl.mechanisms":   "plain",
-			"bootstrap.servers": bootstrapServers,
+			"bootstrap.servers": config.ENVRIONMENT_VARIABLES.KAFKA_BOOTSTRAP_SERVERS,
 		})
 	} else {
 		kafkaProducer, err = kafka.NewProducer(&kafka.ConfigMap{
 			"client.id":         name,
-			"bootstrap.servers": bootstrapServers,
+			"bootstrap.servers": config.ENVRIONMENT_VARIABLES.KAFKA_BOOTSTRAP_SERVERS,
 		})
 	}
 
@@ -51,10 +47,8 @@ func newProducer() {
 }
 
 func (KafkaMessagingProvider) Consume(topics []string, channel chan *kafka.Message) {
-	bootstrapServers := os.Getenv("KAFKA_BOOTSTRAP_SERVERS")
-
 	kafkaConsumer, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers": bootstrapServers,
+		"bootstrap.servers": config.ENVRIONMENT_VARIABLES.KAFKA_BOOTSTRAP_SERVERS,
 		"group.id":          name,
 		"auto.offset.reset": "earliest",
 	})
