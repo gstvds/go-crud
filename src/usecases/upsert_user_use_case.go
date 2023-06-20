@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"go-crud/src/domain/entities"
@@ -14,13 +15,14 @@ import (
 func UpsertUserUseCase(user *entities.User) error {
 	db := database.Get()
 	userRepository := userrepository.New(db)
+	ctx := context.Background()
 
 	existingUser := *user
 
-	if err := userRepository.GetById(&existingUser); err != nil {
+	if _, err := userRepository.GetById(&existingUser, ctx); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			// If doesn't exist, create a new user
-			if err = userRepository.Create(user); err != nil {
+			if _, err = userRepository.Create(user, ctx); err != nil {
 				return err
 			}
 
@@ -30,7 +32,7 @@ func UpsertUserUseCase(user *entities.User) error {
 		return err
 	}
 
-	if err := userRepository.Update(user); err != nil {
+	if _, err := userRepository.Update(user, ctx); err != nil {
 		return err
 	}
 

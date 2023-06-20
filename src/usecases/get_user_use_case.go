@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"context"
 	"go-crud/src/domain/entities"
 	"go-crud/src/external/providers/database"
 	userrepository "go-crud/src/external/repositories/user_repository"
@@ -10,8 +11,9 @@ import (
 func GetUserUseCase(user *entities.User) error {
 	db := database.Get()
 	userRepository := userrepository.New(db)
+	ctx := context.Background()
 
-	if err := userRepository.GetById(user); err != nil {
+	if _, err := userRepository.GetById(user, ctx); err != nil {
 		return err
 	}
 

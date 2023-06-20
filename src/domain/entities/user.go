@@ -13,3 +13,11 @@ type User struct {
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
+
+func NewUser(email string, name string, birthDate string) *User {
+	return &User{
+		Email:     email,
+		Name:      name,
+		BirthDate: birthDate,
+	}
+}

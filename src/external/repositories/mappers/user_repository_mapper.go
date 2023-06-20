@@ -6,7 +6,7 @@ import (
 )
 
 func ToDomain(dbUser *db.UserModel) *entities.User {
-	var user = entities.User{
+	return &entities.User{
 		Id:        dbUser.ID,
 		Email:     dbUser.Email,
 		Name:      dbUser.Name,
@@ -14,6 +14,4 @@ func ToDomain(dbUser *db.UserModel) *entities.User {
 		CreatedAt: dbUser.CreatedAt,
 		UpdatedAt: dbUser.UpdatedAt,
 	}
-
-	return &user
 }

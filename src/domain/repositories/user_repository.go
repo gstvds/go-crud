@@ -1,11 +1,14 @@
 package repositories
 
-import "go-crud/src/domain/entities"
+import (
+	"context"
+	"go-crud/src/domain/entities"
+)
 
 type UserRepository interface {
-	Create(user *entities.User) error
-	GetByEmail(user *entities.User) error
-	GetById(user *entities.User) error
-	Update(user *entities.User) error
-	Delete(id string) error
+	Create(*entities.User, context.Context) (*entities.User, error)
+	GetByEmail(*entities.User, context.Context) (*entities.User, error)
+	GetById(*entities.User, context.Context) (*entities.User, error)
+	Update(*entities.User, context.Context) (*entities.User, error)
+	Delete(string, context.Context) error
 }

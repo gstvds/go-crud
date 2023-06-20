@@ -1,6 +1,7 @@
 package usecases
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"go-crud/src/domain/entities"
@@ -14,17 +15,18 @@ import (
 func DeleteUserUseCase(user *entities.User) error {
 	db := database.Get()
 	userRepository := userrepository.New(db)
+	ctx := context.Background()
 
 	existingUser := user
 
-	if err := userRepository.GetById(existingUser); err != nil {
+	if _, err := userRepository.GetById(existingUser, ctx); err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			fmt.Println("User not found")
 			return err
 		}
 	}
 
-	if err := userRepository.Delete(user); err != nil {
+	if err := userRepository.Delete(user.Id, ctx); err != nil {
 		return err
 	}
 

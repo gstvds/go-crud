@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"go-crud/src/domain/entities"
+	"go-crud/src/external/providers/database"
+	userrepository "go-crud/src/external/repositories/user_repository"
 	"go-crud/src/shared"
 	"go-crud/src/shared/responses"
 	"go-crud/src/usecases"
@@ -11,13 +13,16 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 // Create a new User
 func Create(context *fiber.Ctx) error {
 	body := context.Body()
-	var data entities.User
+	db := database.Get()
+	userRepository := userrepository.New(db)
+	createUserUseCase := usecases.NewCreateUserUseCase(userRepository)
+
+	data := usecases.CreateUserInputDTO{}
 	if err := json.Unmarshal(body, &data); err != nil {
 		responses.Error(context, http.StatusInternalServerError, shared.Error(
 			"Invalid request body",
@@ -27,7 +32,7 @@ func Create(context *fiber.Ctx) error {
 		return nil
 	}
 
-	if err := usecases.CreateUserUseCase(&data); err != nil {
+	if createdUser, err := createUserUseCase.Exec(data); err != nil {
 		if err.Error() == "user already exists" {
 			responses.Error(context, http.StatusInternalServerError, shared.Error(
 				"User already exists",
@@ -43,10 +48,10 @@ func Create(context *fiber.Ctx) error {
 		}
 
 		return nil
+	} else {
+		responses.JSON(context, http.StatusCreated, createdUser)
+		return nil
 	}
-
-	responses.JSON(context, http.StatusCreated, data)
-	return nil
 }
 
 // Update an existing User
@@ -75,7 +80,6 @@ func Update(context *fiber.Ctx) error {
 	}
 
 	var err error
-	data.Id, err = uuid.Parse(userId)
 	log.Println(data)
 
 	if err != nil {
@@ -112,19 +116,9 @@ func Get(context *fiber.Ctx) error {
 	}
 
 	var user = entities.User{}
-	convertedUserId, err := uuid.Parse(userId)
+	user.Id = userId
 
-	if err != nil {
-		responses.Error(context, http.StatusBadRequest, shared.Error(
-			"Something went wrong. Try again",
-			"something_went_wrong",
-			err,
-		))
-		return nil
-	}
-
-	user.Id = convertedUserId
-	err = usecases.GetUserUseCase(&user)
+	err := usecases.GetUserUseCase(&user)
 
 	if err != nil {
 		responses.Error(context, http.StatusNotFound, shared.Error(
@@ -152,18 +146,7 @@ func Delete(context *fiber.Ctx) error {
 	}
 
 	var data entities.User
-	userUuid, err := uuid.Parse(userId)
-
-	if err != nil {
-		responses.Error(context, http.StatusBadRequest, shared.Error(
-			"Something went wrong. Try again",
-			"something_went_wrong",
-			err,
-		))
-		return nil
-	}
-
-	data.Id = userUuid
+	data.Id = userId
 
 	if err := usecases.DeleteUserUseCase(&data); err != nil {
 		responses.Error(context, http.StatusInternalServerError, shared.Error(
