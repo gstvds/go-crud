@@ -5,7 +5,13 @@ import (
 	"go-crud/src/domain/entities"
 )
 
-func ToDomain(dbUser *db.UserModel) *entities.User {
+type UserRepositoryMapper struct{}
+
+func NewUserRepositoryMapper() *UserRepositoryMapper {
+	return &UserRepositoryMapper{}
+}
+
+func (UserRepositoryMapper) ToDomain(dbUser *db.UserModel) *entities.User {
 	return &entities.User{
 		Id:        dbUser.ID,
 		Email:     dbUser.Email,

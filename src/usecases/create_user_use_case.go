@@ -3,7 +3,6 @@ package usecases
 import (
 	"context"
 	"go-crud/src/domain/entities"
-	"go-crud/src/domain/repositories"
 	"log"
 	"time"
 )
@@ -24,14 +23,15 @@ type CreateUserOutputDTO struct {
 }
 
 type CreateUserUseCase struct {
-	UserRepository repositories.UserRepository
+	UserRepository entities.UserRepository
 }
 
-func NewCreateUserUseCase(userRepository repositories.UserRepository) *CreateUserUseCase {
+// NewCreateUserUseCase return a new instance of a CreateUserUseCase
+func NewCreateUserUseCase(userRepository entities.UserRepository) *CreateUserUseCase {
 	return &CreateUserUseCase{UserRepository: userRepository}
 }
 
-// Exec creates a new User
+// Exec the CreateUserUseCase to create a new User (or return the existing one)
 func (useCase CreateUserUseCase) Exec(input CreateUserInputDTO) (*CreateUserOutputDTO, error) {
 	user := entities.NewUser(input.Email, input.Name, input.BirthDate)
 	ctx := context.Background()

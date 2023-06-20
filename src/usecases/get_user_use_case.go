@@ -4,13 +4,13 @@ import (
 	"context"
 	"go-crud/src/domain/entities"
 	"go-crud/src/external/providers/database"
-	userrepository "go-crud/src/external/repositories/user_repository"
+	"go-crud/src/external/repositories"
 )
 
 // GetUserUseCase returns a user by its email
 func GetUserUseCase(user *entities.User) error {
 	db := database.Get()
-	userRepository := userrepository.New(db)
+	userRepository := repositories.NewPrismaUserRepository(db)
 	ctx := context.Background()
 
 	if _, err := userRepository.GetById(user, ctx); err != nil {

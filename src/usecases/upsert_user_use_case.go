@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"go-crud/src/domain/entities"
 	"go-crud/src/external/providers/database"
-	userrepository "go-crud/src/external/repositories/user_repository"
+	"go-crud/src/external/repositories"
 
 	"gorm.io/gorm"
 )
@@ -14,7 +14,7 @@ import (
 // UpsertUserUseCase updates a user (or creates if doesn't exists)
 func UpsertUserUseCase(user *entities.User) error {
 	db := database.Get()
-	userRepository := userrepository.New(db)
+	userRepository := repositories.NewPrismaUserRepository(db)
 	ctx := context.Background()
 
 	existingUser := *user

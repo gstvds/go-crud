@@ -14,6 +14,7 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }
 
+// NewUser return an instance of User
 func NewUser(email string, name string, birthDate string) *User {
 	return &User{
 		Email:     email,
