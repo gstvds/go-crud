@@ -5,11 +5,11 @@ import (
 )
 
 type User struct {
-	Id        string `json:"id,omitempty"`
-	Email     string `json:"email,omitempty"`
-	Name      string `json:"name,omitempty"`
-	BirthDate string `json:"birth_date,omitempty"`
-
+	Id        string    `json:"id,omitempty"`
+	Email     string    `json:"email,omitempty"`
+	Name      string    `json:"name,omitempty"`
+	BirthDate string    `json:"birth_date,omitempty"`
+	Contacts  []Contact `json:"contacts,omitempty"`
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 }

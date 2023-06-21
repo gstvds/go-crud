@@ -8,13 +8,33 @@ generator db {
 }
 
 model User {
+  id        String    @id @unique @default(uuid()) @db.VarChar(36)
+  email     String    @db.VarChar(200)
+  name      String    @db.VarChar(100)
+  birthDate String    @map("birth_date") @db.VarChar(20)
+  contacts  Contact[] @relation(name: "user_contacts")
+  //
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @default(now()) @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Contact {
   id        String   @id @unique @default(uuid()) @db.VarChar(36)
-  email     String   @db.VarChar(200)
-  name      String   @db.VarChar(100)
-  birthDate String   @map("birth_date") @db.VarChar(20)
+  channel   CHANNEL
+  enabled   Boolean  @default(true)
+  receiver  String   @db.VarChar(200)
+  user      User     @relation(name: "user_contacts", fields: [userId], references: [id])
+  userId    String   @map("user_id") @db.VarChar(36)
   //
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
 
-  @@map("users")
+  @@map("contacts")
+}
+
+enum CHANNEL {
+  EMAIL
+  PUSH_NOTIFICATION
 }
