@@ -5,13 +5,13 @@ import (
 	"go-crud/src/domain/entities"
 )
 
-type UserRepositoryMapper struct{}
+type PrismaUserRepositoryMapper struct{}
 
-func NewUserRepositoryMapper() *UserRepositoryMapper {
-	return &UserRepositoryMapper{}
+func NewPrismaUserRepositoryMapper() *PrismaUserRepositoryMapper {
+	return &PrismaUserRepositoryMapper{}
 }
 
-func (UserRepositoryMapper) ToDomain(dbUser *db.UserModel) *entities.User {
+func (PrismaUserRepositoryMapper) ToDomain(dbUser *db.UserModel) *entities.User {
 	return &entities.User{
 		Id:        dbUser.ID,
 		Email:     dbUser.Email,

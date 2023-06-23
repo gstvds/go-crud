@@ -4,9 +4,16 @@ import (
 	"time"
 )
 
+type CHANNEL string
+
+const (
+	EMAIL             CHANNEL = "EMAIL"
+	PUSH_NOTIFICATION CHANNEL = "PUSH_NOTIFICATION"
+)
+
 type Contact struct {
 	Id        string    `json:"id,omitempty"`
-	Channel   string    `json:"channel,omitempty"`
+	Channel   CHANNEL   `json:"channel,omitempty"`
 	Enabled   bool      `json:"enabled,omitempty"`
 	Receiver  string    `json:"receiver,omitempty"`
 	UserId    string    `json:"user_id,omitempty"`
@@ -16,7 +23,7 @@ type Contact struct {
 }
 
 // NewContact return an instance of Contact
-func NewContact(channel string, enabled bool, receiver string, userId string) *Contact {
+func NewContact(channel CHANNEL, enabled bool, receiver string, userId string) *Contact {
 	return &Contact{
 		Channel:  channel,
 		Enabled:  enabled,

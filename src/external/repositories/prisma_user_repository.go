@@ -24,8 +24,8 @@ func (userRepository PrismaUserRepository) Create(user *entities.User, ctx conte
 	).Exec(ctx); err != nil {
 		return nil, err
 	} else {
-		userRepositoryMapper := mappers.NewUserRepositoryMapper()
-		return userRepositoryMapper.ToDomain(createdUser), nil
+		prismaUserRepositoryMapper := mappers.NewPrismaUserRepositoryMapper()
+		return prismaUserRepositoryMapper.ToDomain(createdUser), nil
 	}
 }
 
@@ -40,8 +40,8 @@ func (repository PrismaUserRepository) GetByEmail(email string, ctx context.Cont
 	if foundUser, err := repository.db.User.FindFirst(db.User.Email.Equals(email)).Exec(ctx); err != nil {
 		return nil, err
 	} else {
-		userRepositoryMapper := mappers.NewUserRepositoryMapper()
-		return userRepositoryMapper.ToDomain(foundUser), nil
+		prismaUserRepositoryMapper := mappers.NewPrismaUserRepositoryMapper()
+		return prismaUserRepositoryMapper.ToDomain(foundUser), nil
 	}
 }
 
@@ -49,8 +49,8 @@ func (repository PrismaUserRepository) GetById(userId string, ctx context.Contex
 	if user, err := repository.db.User.FindUnique(db.User.ID.Equals(userId)).Exec(ctx); err != nil {
 		return nil, err
 	} else {
-		userRepositoryMapper := mappers.NewUserRepositoryMapper()
-		return userRepositoryMapper.ToDomain(user), err
+		prismaUserRepositoryMapper := mappers.NewPrismaUserRepositoryMapper()
+		return prismaUserRepositoryMapper.ToDomain(user), err
 	}
 }
 
@@ -64,7 +64,7 @@ func (repository PrismaUserRepository) Update(user *entities.User, ctx context.C
 	).Exec(ctx); err != nil {
 		return nil, err
 	} else {
-		userRepositoryMapper := mappers.NewUserRepositoryMapper()
-		return userRepositoryMapper.ToDomain(updatedUser), nil
+		prismaUserRepositoryMapper := mappers.NewPrismaUserRepositoryMapper()
+		return prismaUserRepositoryMapper.ToDomain(updatedUser), nil
 	}
 }
